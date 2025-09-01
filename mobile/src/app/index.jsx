@@ -23,14 +23,22 @@ export default function Index() {
 
     if (userLoading) return;
 
-    if (user && user.name && user.sport && user.height_cm && user.weight_kg) {
+    // Check if user has completed their profile
+    const hasCompleteProfile = user && 
+      user.name && 
+      user.sport && 
+      user.height_cm && 
+      user.weight_kg &&
+      user.profileComplete !== false;
+
+    if (hasCompleteProfile) {
       // User has completed onboarding, go to main app
       router.replace("/(tabs)");
-    } else if (user && user.email) {
-      // User exists but hasn't completed onboarding
+    } else if (user) {
+      // User is authenticated but profile is incomplete
       router.replace("/onboarding");
     } else {
-      // User is authenticated but profile doesn't exist or failed to load, go to onboarding
+      // User is authenticated but no profile data, go to onboarding
       router.replace("/onboarding");
     }
   }, [isReady, auth, user, userLoading]);

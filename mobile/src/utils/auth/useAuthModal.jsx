@@ -4,7 +4,7 @@ import { create } from 'zustand';
 import { useCallback, useMemo } from 'react';
 import { AuthWebView } from './AuthWebView';
 import { useAuthStore, useAuthModal } from './store';
-import { getAuthConfig } from '../validateEnv';
+import { getAuthConfig } from '@/utils/validateEnv';
 
 
 /**
@@ -50,8 +50,56 @@ export const AuthModal = () => {
   }, []);
 
   if (configError) {
-    console.error('Auth configuration error:', configError);
-    return null;
+    return (
+      <Modal visible={isOpen} transparent={true} animationType="slide">
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 20,
+        }}>
+          <View style={{
+            backgroundColor: '#fff',
+            borderRadius: 12,
+            padding: 20,
+            maxWidth: 300,
+            width: '100%',
+          }}>
+            <Text style={{
+              fontSize: 18,
+              fontWeight: '600',
+              color: '#000',
+              marginBottom: 12,
+              textAlign: 'center',
+            }}>
+              Configuration Error
+            </Text>
+            <Text style={{
+              fontSize: 14,
+              color: '#666',
+              textAlign: 'center',
+              marginBottom: 20,
+            }}>
+              {configError}
+            </Text>
+            <TouchableOpacity
+              onPress={close}
+              style={{
+                backgroundColor: '#007AFF',
+                padding: 12,
+                borderRadius: 8,
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ color: '#fff', fontWeight: '600' }}>
+                Close
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    );
   }
 
   if (!authConfig) {

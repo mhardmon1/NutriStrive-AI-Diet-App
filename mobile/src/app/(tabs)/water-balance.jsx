@@ -36,6 +36,7 @@ export default function WaterBalanceScreen() {
 
   const fetchHydrationData = async () => {
     if (!auth?.user?.id) {
+      console.log('No authenticated user for hydration data');
       setLoading(false);
       return;
     }

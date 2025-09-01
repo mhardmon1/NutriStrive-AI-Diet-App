@@ -81,7 +81,7 @@ const fetchToWeb = async function fetchWithHeaders(...args: Params) {
       if (auth) {
         const authData = JSON.parse(auth);
         if (authData.jwt) {
-          finalHeaders.set('authorization', `Bearer ${authData.jwt}`);
+          finalHeaders.set('Authorization', `Bearer ${authData.jwt}`);
         }
       }
     } catch (error) {
@@ -98,7 +98,7 @@ const fetchToWeb = async function fetchWithHeaders(...args: Params) {
       });
 
     if (auth) {
-      finalHeaders.set('authorization', `Bearer ${auth.jwt}`);
+      finalHeaders.set('Authorization', `Bearer ${auth.jwt}`);
     }
   }
 

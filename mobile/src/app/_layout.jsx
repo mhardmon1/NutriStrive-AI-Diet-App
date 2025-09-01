@@ -39,7 +39,11 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthErrorBoundary onRetry={() => window.location.reload()}>
+      <AuthErrorBoundary onRetry={() => {
+        if (typeof window !== 'undefined') {
+          window.location.reload();
+        }
+      }}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <Stack screenOptions={{ headerShown: false }} initialRouteName="index">
           <Stack.Screen name="index" />

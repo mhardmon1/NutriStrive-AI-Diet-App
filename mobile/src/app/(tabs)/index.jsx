@@ -18,7 +18,7 @@ import QuickLogModal from "@/components/dashboard/QuickLogModal";
 import FloatingActionButtons from "@/components/dashboard/FloatingActionButtons";
 
 export default function DashboardScreen() {
-  useRequireAuth(); // This will show auth modal if user is not signed in
+  useRequireAuth({ mode: 'signin' }); // This will show auth modal if user is not signed in
 
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();

@@ -13,7 +13,12 @@ export const useUser = () => {
 			if (!response.ok) {
 				// If profile doesn't exist, return basic auth user data
 				if (response.status === 404) {
-					return auth.user;
+					console.log('User profile not found, returning basic auth data');
+					return {
+						...auth.user,
+						// Add default values to indicate incomplete profile
+						profileComplete: false,
+					};
 				}
 				throw new Error('Failed to fetch user profile');
 			}
@@ -23,11 +28,15 @@ export const useUser = () => {
 			return {
 				...auth.user,
 				...profileData,
+				profileComplete: true,
 			};
 		} catch (error) {
 			console.error('Error fetching user profile:', error);
-			// Return basic auth user data as fallback
-			return auth.user;
+			// Return basic auth user data as fallback with incomplete flag
+			return {
+				...auth.user,
+				profileComplete: false,
+			};
 		}
 	}, [auth?.user]);
 

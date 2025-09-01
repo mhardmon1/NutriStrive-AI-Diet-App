@@ -40,22 +40,28 @@ export const AuthWebView = ({ mode, proxyURL, baseURL }) => {
       // Verify the origin for security
       const allowedOrigins = [
         process.env.EXPO_PUBLIC_PROXY_BASE_URL,
-        process.env.EXPO_PUBLIC_BASE_URL
+        process.env.EXPO_PUBLIC_BASE_URL,
+        'https://www.create.xyz', // Allow create.xyz origin
       ].filter(Boolean);
       
-      if (!allowedOrigins.includes(event.origin)) {
+      // Allow localhost for development
+      const isLocalhost = event.origin.includes('localhost') || event.origin.includes('127.0.0.1');
+      const isAllowedOrigin = allowedOrigins.includes(event.origin) || isLocalhost;
+      
+      if (!isAllowedOrigin) {
+        console.warn('Received message from unauthorized origin:', event.origin);
         return;
       }
       
       if (event.data.type === 'AUTH_SUCCESS') {
+        console.log('Received AUTH_SUCCESS message');
         setAuth({
           jwt: event.data.jwt,
           user: event.data.user,
         });
       } else if (event.data.type === 'AUTH_ERROR') {
         console.error('Auth error:', event.data.error);
-        // Handle auth errors gracefully
-        router.back();
+        // Don't automatically navigate back, let user handle the error
       }
     };
 

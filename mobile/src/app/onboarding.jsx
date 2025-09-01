@@ -121,6 +121,10 @@ export default function OnboardingScreen() {
     try {
       setLoading(true);
       
+      if (!auth?.user?.id) {
+        throw new Error('User not authenticated');
+      }
+
       // Calculate birth year from age if provided
       let dateOfBirth = null;
       if (formData.dateOfBirth) {
@@ -136,8 +140,8 @@ export default function OnboardingScreen() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: auth?.user?.id,
-          email: auth?.user?.email,
+          userId: auth.user.id,
+          email: auth.user.email,
           name: formData.name,
           sex: formData.sex,
           date_of_birth: dateOfBirth,
@@ -159,7 +163,7 @@ export default function OnboardingScreen() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: auth?.user?.id,
+          userId: auth.user.id,
           weight_kg: parseFloat(formData.weightKg),
           height_cm: parseInt(formData.heightCm),
           sex: formData.sex,

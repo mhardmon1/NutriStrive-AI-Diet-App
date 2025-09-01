@@ -17,12 +17,31 @@ export const useAuth = () => {
   const { isOpen, close, open } = useAuthModal();
 
   const initiate = useCallback(() => {
-    SecureStore.getItemAsync(authKey).then((auth) => {
-      useAuthStore.setState({
-        auth: auth ? JSON.parse(auth) : null,
-        isReady: true,
+    SecureStore.getItemAsync(authKey)
+      .then((authData) => {
+        try {
+          const auth = authData ? JSON.parse(authData) : null;
+          useAuthStore.setState({
+            auth,
+            isReady: true,
+          });
+        } catch (error) {
+          console.error('Error parsing stored auth data:', error);
+          // Clear corrupted auth data
+          SecureStore.deleteItemAsync(authKey);
+          useAuthStore.setState({
+            auth: null,
+            isReady: true,
+          });
+        }
+      })
+      .catch((error) => {
+        console.error('Error retrieving auth data:', error);
+        useAuthStore.setState({
+          auth: null,
+          isReady: true,
+        });
       });
-    });
   }, []);
 
   useEffect(() => {
@@ -56,7 +75,10 @@ export const useAuth = () => {
     // Clear any cached user data
     if (typeof window !== 'undefined') {
       sessionStorage.clear();
+      localStorage.clear();
     }
+    // Navigate back to index
+    router.replace('/');
   }, [close]);
 
   return {

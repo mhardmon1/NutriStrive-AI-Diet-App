@@ -29,6 +29,7 @@ export default function WorkoutsScreen() {
 
   const fetchWorkouts = async () => {
     if (!auth?.user?.id) {
+      console.log('No authenticated user for workouts data');
       setLoading(false);
       return;
     }
@@ -57,12 +58,18 @@ export default function WorkoutsScreen() {
   };
 
   const toggleWorkoutCompletion = async (workoutId, completed) => {
+    if (!auth?.user?.id) {
+      Alert.alert("Error", "Please sign in to update workouts");
+      return;
+    }
+
     try {
       const response = await fetch("/api/workouts", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: workoutId,
+          userId: auth.user.id,
           completed: !completed,
         }),
       });

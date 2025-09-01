@@ -33,13 +33,14 @@ export default function NutritionScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.id || user?.email) {
+    if (auth?.user?.id) {
       fetchNutritionData();
     }
-  }, [user?.id, user?.email]);
+  }, [auth?.user?.id]);
 
   const fetchNutritionData = async () => {
-    if (!user?.id && !user?.email) {
+    if (!auth?.user?.id) {
+      console.log('No authenticated user for nutrition data');
       setLoading(false);
       return;
     }
@@ -49,7 +50,7 @@ export default function NutritionScreen() {
 
       // Fetch daily nutrition summary
       const today = new Date().toISOString().split("T")[0];
-      const userId = user.id || 1; // Fallback for demo
+      const userId = auth.user.id;
       const response = await fetch(
         `/api/nutrition/daily-summary?userId=${userId}&date=${today}`,
       );

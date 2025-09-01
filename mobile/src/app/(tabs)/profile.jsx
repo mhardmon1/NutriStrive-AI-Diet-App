@@ -35,6 +35,7 @@ export default function ProfileScreen() {
 
   const fetchUserData = async () => {
     if (!auth?.user?.id) {
+      console.log('No authenticated user for profile data');
       setLoading(false);
       return;
     }

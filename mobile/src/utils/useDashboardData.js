@@ -11,6 +11,7 @@ export default function useDashboardData() {
 
   const fetchDashboardData = useCallback(async () => {
     if (!auth?.user?.id) {
+      console.log('No authenticated user found');
       setLoading(false);
       return;
     }
@@ -43,11 +44,11 @@ export default function useDashboardData() {
       setHydrationData(hydration);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
-      // Set empty data on error to prevent infinite loading
-      setUserData({});
-      setDailyData({});
+      // Set fallback data on error to prevent infinite loading
+      setUserData({ name: auth?.user?.name || 'User' });
+      setDailyData({ totals: {}, targets: {} });
       setWorkouts([]);
-      setHydrationData({});
+      setHydrationData({ total: 0, target: 2500, logs: [] });
     } finally {
       setLoading(false);
     }
