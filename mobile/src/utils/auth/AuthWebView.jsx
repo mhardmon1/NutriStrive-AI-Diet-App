@@ -15,6 +15,7 @@ export const AuthWebView = ({ mode, proxyURL, baseURL }) => {
   const { auth, setAuth, isReady } = useAuthStore();
   const isAuthenticated = isReady ? !!auth : null;
   const iframeRef = useRef(null);
+  
   useEffect(() => {
     if (Platform.OS === 'web') {
       return;
@@ -23,6 +24,7 @@ export const AuthWebView = ({ mode, proxyURL, baseURL }) => {
       router.back();
     }
   }, [isAuthenticated]);
+   
   useEffect(() => {
     if (isAuthenticated) {
       return;
@@ -36,9 +38,15 @@ export const AuthWebView = ({ mode, proxyURL, baseURL }) => {
     }
     const handleMessage = (event) => {
       // Verify the origin for security
-      if (event.origin !== process.env.EXPO_PUBLIC_PROXY_BASE_URL) {
+      const allowedOrigins = [
+        process.env.EXPO_PUBLIC_PROXY_BASE_URL,
+        process.env.EXPO_PUBLIC_BASE_URL
+      ].filter(Boolean);
+      
+      if (!allowedOrigins.includes(event.origin)) {
         return;
       }
+      
       if (event.data.type === 'AUTH_SUCCESS') {
         setAuth({
           jwt: event.data.jwt,
@@ -46,6 +54,8 @@ export const AuthWebView = ({ mode, proxyURL, baseURL }) => {
         });
       } else if (event.data.type === 'AUTH_ERROR') {
         console.error('Auth error:', event.data.error);
+        // Handle auth errors gracefully
+        router.back();
       }
     };
 
@@ -59,6 +69,8 @@ export const AuthWebView = ({ mode, proxyURL, baseURL }) => {
   if (Platform.OS === 'web') {
     const handleIframeError = () => {
       console.error('Failed to load auth iframe');
+      // Fallback to direct navigation on iframe error
+      window.location.href = `${proxyURL}/account/${mode}?callbackUrl=/api/auth/expo-web-success`;
     };
 
     return (
@@ -71,6 +83,7 @@ export const AuthWebView = ({ mode, proxyURL, baseURL }) => {
       />
     );
   }
+   
   return (
     <WebView
       sharedCookiesEnabled
@@ -83,13 +96,32 @@ export const AuthWebView = ({ mode, proxyURL, baseURL }) => {
         'x-forwarded-host': process.env.EXPO_PUBLIC_HOST,
         'x-createxyz-host': process.env.EXPO_PUBLIC_HOST,
       }}
+      onError={(syntheticEvent) => {
+        const { nativeEvent } = syntheticEvent;
+        console.error('WebView error:', nativeEvent);
+        // Handle WebView errors gracefully
+        router.back();
+      }}
       onShouldStartLoadWithRequest={(request) => {
         if (request.url === `${baseURL}${callbackUrl}`) {
-          fetch(request.url).then(async (response) => {
-            response.json().then((data) => {
-              setAuth({ jwt: data.jwt, user: data.user });
+          fetch(request.url)
+            .then(async (response) => {
+              if (!response.ok) {
+                throw new Error(`Auth callback failed: ${response.status}`);
+              }
+              return response.json();
+            })
+            .then((data) => {
+              if (data.jwt && data.user) {
+                setAuth({ jwt: data.jwt, user: data.user });
+              } else {
+                throw new Error('Invalid auth response data');
+              }
+            })
+            .catch((error) => {
+              console.error('Auth callback error:', error);
+              router.back();
             });
-          });
           return false;
         }
         if (request.url === currentURI) return true;

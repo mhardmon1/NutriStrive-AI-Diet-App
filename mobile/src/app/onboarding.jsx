@@ -27,6 +27,7 @@ import KeyboardAvoidingAnimatedView from "@/components/KeyboardAvoidingAnimatedV
 import SelectionPill from "@/components/SelectionPill";
 import useTheme from "@/utils/useTheme";
 import useUser from "@/utils/auth/useUser";
+import { useAuth } from "@/utils/auth/useAuth";
 
 const STEPS = [
   { id: 'basic', title: 'Basic Info', icon: User },
@@ -37,12 +38,13 @@ const STEPS = [
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
+  const { auth } = useAuth();
   const { refetch: refetchUser } = useUser();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
-    name: '',
+    name: auth?.user?.name || '',
     sex: '',
     dateOfBirth: '',
     heightCm: '',
@@ -134,6 +136,8 @@ export default function OnboardingScreen() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          userId: auth?.user?.id,
+          email: auth?.user?.email,
           name: formData.name,
           sex: formData.sex,
           date_of_birth: dateOfBirth,
@@ -146,7 +150,8 @@ export default function OnboardingScreen() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save profile');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save profile');
       }
 
       // Create initial nutrition targets based on user data
@@ -154,6 +159,7 @@ export default function OnboardingScreen() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          userId: auth?.user?.id,
           weight_kg: parseFloat(formData.weightKg),
           height_cm: parseInt(formData.heightCm),
           sex: formData.sex,
@@ -169,7 +175,7 @@ export default function OnboardingScreen() {
       router.replace('/(tabs)');
     } catch (error) {
       console.error('Error completing onboarding:', error);
-      Alert.alert('Error', 'Failed to save your profile. Please try again.');
+      Alert.alert('Error', error.message || 'Failed to save your profile. Please try again.');
     } finally {
       setLoading(false);
     }

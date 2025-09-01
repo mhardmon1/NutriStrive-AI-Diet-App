@@ -25,7 +25,23 @@ export const useAuth = () => {
     });
   }, []);
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    // Listen for auth success messages from WebView
+    const handleMessage = (event) => {
+      if (event.data?.type === 'AUTH_SUCCESS') {
+        setAuth({
+          jwt: event.data.jwt,
+          user: event.data.user,
+        });
+        close();
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('message', handleMessage);
+      return () => window.removeEventListener('message', handleMessage);
+    }
+  }, [setAuth, close]);
 
   const signIn = useCallback(() => {
     open({ mode: 'signin' });
@@ -37,6 +53,10 @@ export const useAuth = () => {
   const signOut = useCallback(() => {
     setAuth(null);
     close();
+    // Clear any cached user data
+    if (typeof window !== 'undefined') {
+      sessionStorage.clear();
+    }
   }, [close]);
 
   return {

@@ -14,10 +14,12 @@ import { Droplet, Clock3, Plus, X } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import useTheme from "@/utils/useTheme";
 import SelectionPill from "@/components/SelectionPill";
+import { useAuth } from "@/utils/auth/useAuth";
 
 export default function WaterBalanceScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { auth } = useAuth();
   const [selectedPeriod, setSelectedPeriod] = useState("Daily");
   const [hydrationData, setHydrationData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -33,11 +35,16 @@ export default function WaterBalanceScreen() {
   }, []);
 
   const fetchHydrationData = async () => {
+    if (!auth?.user?.id) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
 
       const today = new Date().toISOString().split("T")[0];
-      const response = await fetch(`/api/hydration?userId=1&date=${today}`);
+      const response = await fetch(`/api/hydration?userId=${auth.user.id}&date=${today}`);
       const data = await response.json();
       setHydrationData(data);
     } catch (error) {
@@ -62,13 +69,18 @@ export default function WaterBalanceScreen() {
       Alert.alert("Error", "Please enter a valid amount");
       return;
     }
+    
+    if (!auth?.user?.id) {
+      Alert.alert("Error", "Please sign in to log hydration");
+      return;
+    }
 
     try {
       const response = await fetch("/api/hydration", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: 1,
+          userId: auth.user.id,
           amount_ml: amount,
           date: new Date().toISOString().split("T")[0],
         }),

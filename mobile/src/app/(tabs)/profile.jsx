@@ -18,10 +18,12 @@ import {
 } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import useTheme from "@/utils/useTheme";
+import { useAuth } from "@/utils/auth/useAuth";
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
+  const { auth } = useAuth();
   const [showHeaderBorder, setShowHeaderBorder] = useState(false);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -32,10 +34,15 @@ export default function ProfileScreen() {
   }, []);
 
   const fetchUserData = async () => {
+    if (!auth?.user?.id) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
       
-      const response = await fetch('/api/users/profile?userId=1');
+      const response = await fetch(`/api/users/profile?userId=${auth.user.id}`);
       const data = await response.json();
       setUserData(data);
       

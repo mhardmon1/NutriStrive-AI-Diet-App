@@ -33,19 +33,25 @@ export default function NutritionScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.id) {
+    if (user?.id || user?.email) {
       fetchNutritionData();
     }
-  }, [user?.id]);
+  }, [user?.id, user?.email]);
 
   const fetchNutritionData = async () => {
+    if (!user?.id && !user?.email) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
 
       // Fetch daily nutrition summary
       const today = new Date().toISOString().split("T")[0];
+      const userId = user.id || 1; // Fallback for demo
       const response = await fetch(
-        `/api/nutrition/daily-summary?userId=${user?.id || 1}&date=${today}`,
+        `/api/nutrition/daily-summary?userId=${userId}&date=${today}`,
       );
       const data = await response.json();
       setDailyData(data);

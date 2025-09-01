@@ -24,10 +24,12 @@ import useTheme from "@/utils/useTheme";
 import SelectionPill from "@/components/SelectionPill";
 import * as ImagePicker from "expo-image-picker";
 import useUpload from "@/utils/useUpload";
+import { useAuth } from "@/utils/auth/useAuth";
 
 export default function BuildPlateScreen() {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
+  const { auth } = useAuth();
   const [selectedMode, setSelectedMode] = useState("Camera");
   const [currentMeal, setCurrentMeal] = useState([]);
   const [optimization, setOptimization] = useState(null);
@@ -181,6 +183,11 @@ export default function BuildPlateScreen() {
   const logMeal = async (mealToLog = null) => {
     const meal = mealToLog || currentMeal;
     if (meal.length === 0) return;
+    
+    if (!auth?.user?.id) {
+      Alert.alert("Error", "Please sign in to log meals");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -190,7 +197,7 @@ export default function BuildPlateScreen() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: 1,
+          userId: auth.user.id,
           meal_type: "meal", // Could be dynamic (breakfast, lunch, dinner, snack)
           foods: meal,
           date: new Date().toISOString().split("T")[0],

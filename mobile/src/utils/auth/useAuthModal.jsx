@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { useCallback, useMemo } from 'react';
 import { AuthWebView } from './AuthWebView';
 import { useAuthStore, useAuthModal } from './store';
+import { getAuthConfig } from '../validateEnv';
 
 
 /**
@@ -30,21 +31,44 @@ import { useAuthStore, useAuthModal } from './store';
  *
  */
 export const AuthModal = () => {
-  const { isOpen, mode } = useAuthModal();
+  const { isOpen, mode, close } = useAuthModal();
   const { auth } = useAuthStore();
+  const [authConfig, setAuthConfig] = useState(null);
+  const [configError, setConfigError] = useState(null);
 
   const snapPoints = useMemo(() => ['100%'], []);
-  const proxyURL = process.env.EXPO_PUBLIC_PROXY_BASE_URL;
-  const baseURL = process.env.EXPO_PUBLIC_BASE_URL;
-  if (!proxyURL || !baseURL) {
+   
+  useEffect(() => {
+    try {
+      const config = getAuthConfig();
+      setAuthConfig(config);
+      setConfigError(null);
+    } catch (error) {
+      console.error('Auth configuration error:', error);
+      setConfigError(error.message);
+    }
+  }, []);
+
+  if (configError) {
+    console.error('Auth configuration error:', configError);
     return null;
   }
 
+  if (!authConfig) {
+    return null;
+  }
+  // Close modal when user becomes authenticated
+  useEffect(() => {
+    if (auth && isOpen) {
+      close();
+    }
+  }, [auth, isOpen, close]);
   return (
     <Modal
       visible={isOpen && !auth}
       transparent={true}
       animationType="slide"
+      onRequestClose={close}
     >
       <View
         style={{
@@ -60,8 +84,8 @@ export const AuthModal = () => {
       >
         <AuthWebView
           mode={mode}
-          proxyURL={proxyURL}
-          baseURL={baseURL}
+          proxyURL={authConfig.proxyURL}
+          baseURL={authConfig.baseURL}
         />
       </View>
     </Modal>

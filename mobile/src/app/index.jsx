@@ -23,14 +23,14 @@ export default function Index() {
 
     if (userLoading) return;
 
-    if (user && user.name && user.sport) {
+    if (user && user.name && user.sport && user.height_cm && user.weight_kg) {
       // User has completed onboarding, go to main app
       router.replace("/(tabs)");
-    } else if (user) {
+    } else if (user && user.email) {
       // User exists but hasn't completed onboarding
       router.replace("/onboarding");
     } else {
-      // User is authenticated but profile doesn't exist, go to onboarding
+      // User is authenticated but profile doesn't exist or failed to load, go to onboarding
       router.replace("/onboarding");
     }
   }, [isReady, auth, user, userLoading]);

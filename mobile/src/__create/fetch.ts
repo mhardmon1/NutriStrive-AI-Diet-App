@@ -28,6 +28,9 @@ const isSecondPartyURL = (url: string) => {
   return url.startsWith('/_create/');
 };
 
+const isAPIURL = (url: string) => {
+  return url.startsWith('/api/');
+};
 type Params = Parameters<typeof expoFetch>;
 const fetchToWeb = async function fetchWithHeaders(...args: Params) {
   const firstPartyURL = process.env.EXPO_PUBLIC_BASE_URL;
@@ -71,16 +74,32 @@ const fetchToWeb = async function fetchWithHeaders(...args: Params) {
     }
   }
 
-  const auth = await SecureStore.getItemAsync(authKey)
-    .then((auth) => {
-      return auth ? JSON.parse(auth) : null;
-    })
-    .catch(() => {
-      return null;
-    });
+  // Add authentication headers for API requests
+  if (isAPIURL(url)) {
+    try {
+      const auth = await SecureStore.getItemAsync(authKey);
+      if (auth) {
+        const authData = JSON.parse(auth);
+        if (authData.jwt) {
+          finalHeaders.set('authorization', `Bearer ${authData.jwt}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error retrieving auth token:', error);
+    }
+  } else {
+    // For non-API requests, use the existing auth logic
+    const auth = await SecureStore.getItemAsync(authKey)
+      .then((auth) => {
+        return auth ? JSON.parse(auth) : null;
+      })
+      .catch(() => {
+        return null;
+      });
 
-  if (auth) {
-    finalHeaders.set('authorization', `Bearer ${auth.jwt}`);
+    if (auth) {
+      finalHeaders.set('authorization', `Bearer ${auth.jwt}`);
+    }
   }
 
   return expoFetch(finalInput, {

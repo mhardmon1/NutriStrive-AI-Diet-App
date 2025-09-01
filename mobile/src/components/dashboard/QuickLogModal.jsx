@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { X } from "lucide-react-native";
 import useTheme from "@/utils/useTheme";
+import { useAuth } from "@/utils/auth/useAuth";
 
 export default function QuickLogModal({
   visible,
@@ -21,6 +22,7 @@ export default function QuickLogModal({
 }) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { auth } = useAuth();
   const [logText, setLogText] = useState("");
   const [logAmount, setLogAmount] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,6 +36,11 @@ export default function QuickLogModal({
   const quickLogFood = async () => {
     if (!logText.trim()) {
       Alert.alert("Error", "Please describe the food");
+      return;
+    }
+    
+    if (!auth?.user?.id) {
+      Alert.alert("Error", "Please sign in to log food");
       return;
     }
 
@@ -51,7 +58,7 @@ export default function QuickLogModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: 1,
+          userId: auth.user.id,
           meal_type: "snack",
           foods: analysis.foods,
           date: new Date().toISOString().split("T")[0],
@@ -76,6 +83,11 @@ export default function QuickLogModal({
       Alert.alert("Error", "Please enter a valid amount in ML");
       return;
     }
+    
+    if (!auth?.user?.id) {
+      Alert.alert("Error", "Please sign in to log hydration");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -83,7 +95,7 @@ export default function QuickLogModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: 1,
+          userId: auth.user.id,
           amount_ml: amount,
           date: new Date().toISOString().split("T")[0],
         }),

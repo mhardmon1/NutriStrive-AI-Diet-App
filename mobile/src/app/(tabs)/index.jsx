@@ -22,7 +22,7 @@ export default function DashboardScreen() {
 
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
-  const { data: authUser } = useUser();
+  const { data: authUser, loading: userLoading } = useUser();
   const scrollViewRef = useRef(null);
 
   const [selectedCategory, setSelectedCategory] = useState("Daily Summary");
@@ -74,7 +74,7 @@ export default function DashboardScreen() {
   }, [hydrationData]);
 
   // Don't render content until user is authenticated
-  if (!authUser) {
+  if (!authUser || userLoading) {
     return (
       <View
         style={{
@@ -85,6 +85,9 @@ export default function DashboardScreen() {
         }}
       >
         <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={{ color: colors.text, marginTop: 16 }}>
+          {userLoading ? "Loading user data..." : "Authenticating..."}
+        </Text>
       </View>
     );
   }

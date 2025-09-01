@@ -12,10 +12,12 @@ import {
 } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import useTheme from "@/utils/useTheme";
+import { useAuth } from "@/utils/auth/useAuth";
 
 export default function WorkoutsScreen() {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
+  const { auth } = useAuth();
   const [showHeaderBorder, setShowHeaderBorder] = useState(false);
   const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,11 +28,16 @@ export default function WorkoutsScreen() {
   }, []);
 
   const fetchWorkouts = async () => {
+    if (!auth?.user?.id) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
 
       const today = new Date().toISOString().split("T")[0];
-      const response = await fetch(`/api/workouts?userId=1&date=${today}`);
+      const response = await fetch(`/api/workouts?userId=${auth.user.id}&date=${today}`);
       const data = await response.json();
       setWorkouts(data);
     } catch (error) {
