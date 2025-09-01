@@ -1,9 +1,25 @@
 import sql from "@/app/api/utils/sql";
+import { auth } from "@/auth";
 
 export async function POST(request) {
   try {
+    const session = await auth();
+    if (!session?.user?.email) {
+      return Response.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    // Get user ID from email
+    const [user] = await sql`
+      SELECT id FROM users WHERE email = ${session.user.email}
+    `;
+
+    if (!user) {
+      return Response.json({ error: 'User not found' }, { status: 404 });
+    }
+
     const body = await request.json();
-    const { userId, meal_type, foods, date } = body;
+    const { meal_type, foods, date } = body;
+    const userId = user.id;
 
     if (!userId || !meal_type || !foods || foods.length === 0) {
       return Response.json(

@@ -1,9 +1,24 @@
 import sql from '@/app/api/utils/sql';
+import { auth } from '@/auth';
 
 export async function GET(request) {
   try {
+    const session = await auth();
+    if (!session?.user?.email) {
+      return Response.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    // Get user ID from email
+    const [user] = await sql`
+      SELECT id FROM users WHERE email = ${session.user.email}
+    `;
+
+    if (!user) {
+      return Response.json({ error: 'User not found' }, { status: 404 });
+    }
+
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || 1; // Default to user 1 for demo
+    const userId = user.id;
     const date = searchParams.get('date') || new Date().toISOString().split('T')[0];
 
     // Get user targets
