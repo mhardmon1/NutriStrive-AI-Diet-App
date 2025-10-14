@@ -17,6 +17,7 @@
 		"@hono/auth-js": "^1.0.15",
 		"@lshay/ui": "^0.1.32",
 		"@neondatabase/serverless": "^0.10.4",
+		"@supabase/supabase-js": "^2.47.10",
 		"@react-aria/button": "^3.13.1",
 		"@react-router/fs-routes": "^7.6.0",
 		"@react-router/node": "^7.6.0",

@@ -5,6 +5,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import OfflineIndicator from "@/components/OfflineIndicator";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -43,6 +44,7 @@ export default function RootLayout() {
           <Stack.Screen name="index" />
         </Stack>
         <AuthModal />
+        <OfflineIndicator />
       </GestureHandlerRootView>
     </QueryClientProvider>
   );
